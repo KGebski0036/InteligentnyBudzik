@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BigBenTen.Modele
+namespace BigBenTen.Model
 {
-    internal class SmartAlarm
+    abstract class Alarm
     {
+        string Name { get; set; }
+        bool Enabled { get; set; }
     }
 }

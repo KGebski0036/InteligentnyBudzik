@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BigBenTen.Model
 {
-    internal class SmartAlarm
+    class SmartAlarm
     {
     }
 }

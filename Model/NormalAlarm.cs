@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BigBenTen.Model
 {
-    internal class NormalAlarm : Alarm
+    class NormalAlarm : Alarm
     {
         public TimeSpan TimeToWakeUp { get; set; }
     }
