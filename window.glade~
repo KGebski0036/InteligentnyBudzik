@@ -146,14 +146,17 @@
             <property name="can-focus">False</property>
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkLabel" id="StatusPulse">
+              <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">No siema byko to twoje tętno trochę słabe gośćiu</property>
+                <property name="label" translatable="yes">Stan czujnika pulsu</property>
+                <attributes>
+                  <attribute name="scale" value="3"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -161,12 +164,15 @@
               <object class="GtkLabel" id="PulseLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">jjj</property>
+                <property name="label" translatable="yes">Brak</property>
+                <attributes>
+                  <attribute name="scale" value="3"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">94</property>
+                <property name="padding">66</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -252,7 +258,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="padding">24</property>
                         <property name="position">0</property>
@@ -311,7 +317,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
                       </packing>
@@ -364,13 +370,16 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="padding">25</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
+                  <packing>
+                    <property name="tab-fill">False</property>
+                  </packing>
                 </child>
                 <child>
                   <object class="GtkEntry" id="AlarmNameInput">
@@ -524,7 +533,7 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
@@ -691,17 +700,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="AlarmNameWakeUpLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkButton" id="StopAlarmButton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -718,7 +716,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">4</property>
+                <property name="position">3</property>
               </packing>
             </child>
           </object>

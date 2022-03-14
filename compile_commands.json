@@ -49,9 +49,9 @@
       "main",
       "Alarm.cpp"
     ],
-    "directory": "/home/karol/BigBenTenCpp",
-    "file": "/home/karol/BigBenTenCpp/Alarm.cpp",
-    "output": "/home/karol/BigBenTenCpp/main"
+    "directory": "/home/karol/Projekty/BigBenTen",
+    "file": "/home/karol/Projekty/BigBenTen/Alarm.cpp",
+    "output": "/home/karol/Projekty/BigBenTen/main"
   },
   {
     "arguments": [
@@ -104,8 +104,8 @@
       "main",
       "main.cpp"
     ],
-    "directory": "/home/karol/BigBenTenCpp",
-    "file": "/home/karol/BigBenTenCpp/main.cpp",
-    "output": "/home/karol/BigBenTenCpp/main"
+    "directory": "/home/karol/Projekty/BigBenTen",
+    "file": "/home/karol/Projekty/BigBenTen/main.cpp",
+    "output": "/home/karol/Projekty/BigBenTen/main"
   }
 ]

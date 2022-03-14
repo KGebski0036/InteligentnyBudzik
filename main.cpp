@@ -65,20 +65,15 @@ void UpdateClockHM(Glib::RefPtr<Gtk::Label> clockLabel, tm *currenttime) {
 }
 
 void ShowAlarm(const Alarm& alarm){
-// Gtk::Window *ringWindow;
-    // builder->get_widget("RingWindow", ringWindow);
-    // ringWindow->show();
     auto pageContainer = Glib::RefPtr<Gtk::Notebook>::cast_dynamic(builder->get_object("PageContainer"));
     auto alarmHourLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AlarmHourWakeUpLabel"));
     auto alarmModeLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AlarmModeWakeUpLabel"));
-    auto alarmNameLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AlarmNameWakeUpLabel"));
     pageContainer->set_current_page(MAIN_PAGE_WAKE_UP);
     alarmHourLabel->set_text("Godzina:" + std::to_string(alarm.hour) + ":" + std::to_string(alarm.minute));
-    alarmNameLabel->set_text(alarm.name);
 }
 
 void Ring(){
-    while(system("aplay yoo.wav") == 0);
+    while(system("aplay ring.wav") == 0);
 }
 
 void StopAlarm() {
@@ -336,18 +331,39 @@ void PreviousPage(){
     pages->prev_page();
 }
 
+void CheckPusleClick(){
+    Glib::RefPtr<Gtk::Notebook> pages = Glib::RefPtr<Gtk::Notebook>::cast_dynamic(builder->get_object("PageContainer"));
+    pages->set_current_page(2);
+}
+
+void UpdatePulse(){
+    // Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
+    // std::string text;
+    // while (true)
+    // {
+    //     if(digitalRead(21)){
+    //         text = "Sygnał to 1";
+    //     }
+    //     else{
+    //         text = "Sygnał to 0";
+    //     }
+    //     smallClockLabel->set_text(text);
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    // }
+    
+}
+
 int main(int argc, char *argv[]){
     auto app = Gtk::Application::create(argc, argv, "pl.edu.zse.BigBenTen");
     builder = Gtk::Builder::create_from_file("window.glade");
     Gtk::Window *mainwindow;
     builder->get_widget("MainWindow", mainwindow);
     currentAlarm = new Alarm();
-/*
-    wiringPiSetup();
-    pinMode(22, OUTPUT);
-    digitalWrite(22, 1);
-*/
 
+    // wiringPiSetup();
+    // pinMode(22, OUTPUT);
+    // pinMode(21, INPUT);
+    // digitalWrite(22, 1);
 
     Glib::RefPtr<Gtk::Label> clockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel"));
     Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel2"));
@@ -374,7 +390,7 @@ int main(int argc, char *argv[]){
 
     clockEvent->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));
     smallclockEvent->signal_button_press_event().connect(sigc::ptr_fun(&OnSecoundClockClicked));
-    checkPulseButton->signal_clicked().connect(sigc::ptr_fun(&OnAlarmAddClicked));
+    checkPulseButton->signal_clicked().connect(sigc::ptr_fun(&CheckPusleClick));
     addAlarmButton->signal_clicked().connect(sigc::ptr_fun(&OnAlarmAddClicked));
     backButton->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));
 
@@ -390,6 +406,9 @@ int main(int argc, char *argv[]){
     cancelButton->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));  
 
     std::thread clockUpdater(KeepUpdatingClock,clockLabel,smallClockLabel);
+    //std::thread pulseUpdater(UpdatePulse);
+
+    // digitalWrite(22, 0);
     app->run(*mainwindow);
 }
 
