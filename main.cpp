@@ -10,7 +10,7 @@
 #include <thread>
 #include <vector>
 
-//#include <wiringPi.h>
+#include <wiringPi.h>
 
 #include "Alarm.hpp"
 
@@ -337,19 +337,19 @@ void CheckPusleClick(){
 }
 
 void UpdatePulse(){
-    // Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
-    // std::string text;
-    // while (true)
-    // {
-    //     if(digitalRead(21)){
-    //         text = "Sygnał to 1";
-    //     }
-    //     else{
-    //         text = "Sygnał to 0";
-    //     }
-    //     smallClockLabel->set_text(text);
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    // }
+    Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
+    std::string text;
+    while (true)
+    {
+        if(digitalRead(21)){
+            text = "Sygnał to 1";
+        }
+        else{
+            text = "Sygnał to 0";
+        }
+        smallClockLabel->set_text(text);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
     
 }
 
@@ -360,10 +360,10 @@ int main(int argc, char *argv[]){
     builder->get_widget("MainWindow", mainwindow);
     currentAlarm = new Alarm();
 
-    // wiringPiSetup();
-    // pinMode(22, OUTPUT);
-    // pinMode(21, INPUT);
-    // digitalWrite(22, 1);
+    wiringPiSetup();
+    pinMode(22, OUTPUT);
+    pinMode(21, INPUT);
+    digitalWrite(22, 1);
 
     Glib::RefPtr<Gtk::Label> clockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel"));
     Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel2"));
@@ -406,9 +406,9 @@ int main(int argc, char *argv[]){
     cancelButton->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));  
 
     std::thread clockUpdater(KeepUpdatingClock,clockLabel,smallClockLabel);
-    //std::thread pulseUpdater(UpdatePulse);
-
-    // digitalWrite(22, 0);
+    std::thread pulseUpdater(UpdatePulse);
+    
     app->run(*mainwindow);
+    digitalWrite(22, 0);
 }
 
