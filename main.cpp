@@ -14,6 +14,7 @@
 
 
 #include "Alarm.hpp"
+#include "Sleep.hpp"
 
 const size_t MAIN_PAGE_CLOCK = 0;
 const size_t MAIN_PAGE_SETTINGS = 1;
@@ -24,15 +25,14 @@ const size_t MAIN_PAGE_WAKE_UP = 5;
 
 const char ARDUINO_PORT[] = "/dev/ttyUSB0";
 
-
 Glib::RefPtr<Gtk::Builder> builder;
+
 Alarm* currentAlarm;
 std::vector<Alarm*> alarms;
 
 std::ifstream arduinoSerial;
 
-
-
+Sleep* currentsleep = nullptr;
 
 void printHello(std::string name) { 
     std::cout << "Hello, " << name << '\n';
@@ -103,6 +103,7 @@ void CheckAlarms(tm *currenttime){
 }
 
 void KeepUpdatingClock(Glib::RefPtr<Gtk::Label> clockLabel, Glib::RefPtr<Gtk::Label> smallclockLabel) {
+    Glib::RefPtr<Gtk::Label> timeOfSleeping = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("TimeOfSleepingLabel"));
     time_t timer;
     tm *currentTime;
     while(true) { 
@@ -111,6 +112,9 @@ void KeepUpdatingClock(Glib::RefPtr<Gtk::Label> clockLabel, Glib::RefPtr<Gtk::La
         UpdateClockHM(clockLabel, currentTime);
         UpdateClockHMS(smallclockLabel, currentTime);
         CheckAlarms(currentTime);
+        if(currentsleep != nullptr){
+            currentsleep->UpdateSleepTime(currentTime, timeOfSleeping);
+        }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -343,7 +347,21 @@ void UpdatePulse(Glib::RefPtr<Gtk::Label> pulseLabel){
     }
 }
 
-
+void SleepButtonClicked(){
+    Glib::RefPtr<Gtk::Notebook> pages = Glib::RefPtr<Gtk::Notebook>::cast_dynamic(builder->get_object("PageContainer"));
+    pages->set_current_page(4);
+    time_t timer;
+    tm *currentTime;
+    time(&timer);
+    currentTime = localtime(&timer);
+    currentsleep = new Sleep(currentTime);
+}
+void WakeUpButtonClicked(){
+    Glib::RefPtr<Gtk::Notebook> pages = Glib::RefPtr<Gtk::Notebook>::cast_dynamic(builder->get_object("PageContainer"));
+    delete currentsleep;
+    currentsleep = nullptr;
+    pages->set_current_page(1);
+}
 
 
 int main(int argc, char *argv[]){
@@ -376,7 +394,8 @@ int main(int argc, char *argv[]){
 
     Glib::RefPtr<Gtk::Button> stopAlarmButton = Glib::RefPtr<Gtk::Button>::cast_dynamic(builder->get_object("StopAlarmButton"));
     Glib::RefPtr<Gtk::Label> pulseLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
-
+    Glib::RefPtr<Gtk::Button> sleepButton = Glib::RefPtr<Gtk::Button>::cast_dynamic(builder->get_object("SleepButton"));
+    Glib::RefPtr<Gtk::Button> wakeUpButton = Glib::RefPtr<Gtk::Button>::cast_dynamic(builder->get_object("WakeUpButton"));
 
 
     clockEvent->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));
@@ -395,6 +414,9 @@ int main(int argc, char *argv[]){
     nextButton->signal_clicked().connect(sigc::ptr_fun(&NextPage));
     previousButton->signal_clicked().connect(sigc::ptr_fun(&PreviousPage));
     cancelButton->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));  
+
+    sleepButton->signal_clicked().connect(sigc::ptr_fun(&SleepButtonClicked));
+    wakeUpButton->signal_clicked().connect(sigc::ptr_fun(&WakeUpButtonClicked));
 
     std::thread clockUpdater(KeepUpdatingClock,clockLabel,smallClockLabel);
     std::thread pulseUpdater(UpdatePulse, pulseLabel);
