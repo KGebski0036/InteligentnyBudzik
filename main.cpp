@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
+
 
 #include <ctime>
 
@@ -10,7 +12,6 @@
 #include <thread>
 #include <vector>
 
-#include <wiringPi.h>
 
 #include "Alarm.hpp"
 
@@ -21,10 +22,17 @@ const size_t MAIN_PAGE_ADD_ALARM = 3;
 const size_t MAIN_PAGE_SLEEPING = 4;
 const size_t MAIN_PAGE_WAKE_UP = 5;
 
+const char ARDUINO_PORT[] = "/dev/ttyUSB0";
+
 
 Glib::RefPtr<Gtk::Builder> builder;
 Alarm* currentAlarm;
 std::vector<Alarm*> alarms;
+
+std::ifstream arduinoSerial;
+
+
+
 
 void printHello(std::string name) { 
     std::cout << "Hello, " << name << '\n';
@@ -168,16 +176,9 @@ void OnCheckPulseClicked(){
 
 void AddHour(){
     Glib::RefPtr<Gtk::Label> addHourLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AddHourLabel"));
-    int i = 1;
-    if(currentAlarm->hour + i < 0){
-        i -= currentAlarm->hour;
-        currentAlarm->hour = 24 - i;
-    }else if(currentAlarm->hour + i > 23){
-        i -= 24 - currentAlarm->hour;
-        currentAlarm->hour = i;
-    }else{
-        currentAlarm->hour += i;
-    }
+    currentAlarm->hour = (currentAlarm->hour+1) % 24;
+
+
     std::stringstream labelStream;
     labelStream << std::setw(2) << std::setfill('0') << currentAlarm->hour;
     std::string labelText;
@@ -188,16 +189,9 @@ void AddHour(){
 void AddMinute()
 {
     Glib::RefPtr<Gtk::Label> addMinuteLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AddMinutesLabel"));
-    int i = 1;
-    if(currentAlarm->minute + i < 0){
-        i -= currentAlarm->minute;
-        currentAlarm->minute = 60 - i;
-    }else if(currentAlarm->minute + i > 59){
-        i -= 60 - currentAlarm->minute;
-        currentAlarm->minute = i;
-    }else{
-        currentAlarm->minute += i;
-    }
+    
+    currentAlarm->minute = (currentAlarm->minute+1) % 60;
+
     std::stringstream labelStream;
     labelStream << std::setw(2) << std::setfill('0') << currentAlarm->minute;
     std::string labelText;
@@ -208,16 +202,12 @@ void AddMinute()
 void MinusMinute()
 {
     Glib::RefPtr<Gtk::Label> addMinuteLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AddMinutesLabel"));
-    int i = -1;
-    if(currentAlarm->minute + i < 0){
-        i -= currentAlarm->minute;
-        currentAlarm->minute = 58 - i;
-    }else if(currentAlarm->minute + i > 59){
-        i -= 60 - currentAlarm->minute;
-        currentAlarm->minute = i;
-    }else{
-        currentAlarm->minute += i;
+ 
+    currentAlarm->minute = currentAlarm->minute - 1;
+    if (currentAlarm->minute < 0) {
+        currentAlarm->minute = 59;
     }
+
     std::stringstream labelStream;
     labelStream << std::setw(2) << std::setfill('0') << currentAlarm->minute;
     std::string labelText;
@@ -227,16 +217,12 @@ void MinusMinute()
 
 void MinusHour(){
     Glib::RefPtr<Gtk::Label> addHourLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("AddHourLabel"));
-    int i = -1;
-    if(currentAlarm->hour + i < 0){
-        i -= currentAlarm->hour;
-        currentAlarm->hour = 22 - i;
-    }else if(currentAlarm->hour + i > 23){
-        i -= 24 - currentAlarm->hour;
-        currentAlarm->hour = i;
-    }else{
-        currentAlarm->hour += i;
+
+    currentAlarm->hour = currentAlarm->hour - 1;
+    if (currentAlarm->hour < 0) {
+        currentAlarm->hour = 23;
     }
+
     std::stringstream labelStream;
     labelStream << std::setw(2) << std::setfill('0') << currentAlarm->hour;
     std::string labelText;
@@ -336,22 +322,29 @@ void CheckPusleClick(){
     pages->set_current_page(2);
 }
 
-void UpdatePulse(){
-    Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
-    std::string text;
+
+
+void UpdatePulse(Glib::RefPtr<Gtk::Label> pulseLabel){
+    std::string text = "100";
+    int bpm = 100;
     while (true)
     {
-        if(digitalRead(21)){
-            text = "Sygnał to 1";
+        if(arduinoSerial.is_open()) {    
+            arduinoSerial >> text;
+            bpm = std::stoi(text);
+            if(bpm < 0)             //One hit of the heart was detecting
+            {
+                bpm = -bpm;  
+            }
+            text = std::to_string(bpm);
         }
-        else{
-            text = "Sygnał to 0";
-        }
-        smallClockLabel->set_text(text);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        pulseLabel->set_text(text);
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));      
     }
-    
 }
+
+
+
 
 int main(int argc, char *argv[]){
     auto app = Gtk::Application::create(argc, argv, "pl.edu.zse.BigBenTen");
@@ -360,10 +353,7 @@ int main(int argc, char *argv[]){
     builder->get_widget("MainWindow", mainwindow);
     currentAlarm = new Alarm();
 
-    wiringPiSetup();
-    pinMode(22, OUTPUT);
-    pinMode(21, INPUT);
-    digitalWrite(22, 1);
+    arduinoSerial.open(ARDUINO_PORT);
 
     Glib::RefPtr<Gtk::Label> clockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel"));
     Glib::RefPtr<Gtk::Label> smallClockLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("ClockLabel2"));
@@ -385,6 +375,7 @@ int main(int argc, char *argv[]){
     Glib::RefPtr<Gtk::Button> cancelButton = Glib::RefPtr<Gtk::Button>::cast_dynamic(builder->get_object("CancelButton"));
 
     Glib::RefPtr<Gtk::Button> stopAlarmButton = Glib::RefPtr<Gtk::Button>::cast_dynamic(builder->get_object("StopAlarmButton"));
+    Glib::RefPtr<Gtk::Label> pulseLabel = Glib::RefPtr<Gtk::Label>::cast_dynamic(builder->get_object("PulseLabel"));
 
 
 
@@ -406,9 +397,8 @@ int main(int argc, char *argv[]){
     cancelButton->signal_button_press_event().connect(sigc::ptr_fun(&OnMainClockClicked));  
 
     std::thread clockUpdater(KeepUpdatingClock,clockLabel,smallClockLabel);
-    std::thread pulseUpdater(UpdatePulse);
+    std::thread pulseUpdater(UpdatePulse, pulseLabel);
     
     app->run(*mainwindow);
-    digitalWrite(22, 0);
 }
 
